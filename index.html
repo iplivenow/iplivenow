@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+  <title>iplivenow</title>
+  <!-- Font Awesome Icons (free) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="avatar.ico" type="image/ico" rel="shortcut icon">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+      transition: background-color 0.2s, color 0.15s, border-color 0.15s;
+    }
+    body {
+      background: #f5f7fa;
+      color: #1e293b;
+      padding-top: 70px;
+    }
+    body.dark {
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* фиксированная шапка */
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 64px;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+      gap: 16px;
+      flex-wrap: nowrap;
+    }
+    body.dark .header {
+      background: rgba(15, 23, 42, 0.9);
+      border-bottom-color: #2d3a52;
+    }
+    .logo {
+      font-weight: 700;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #2563eb;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .logo i { font-size: 1.6rem; }
+    .search-wrap {
+      flex: 1;
+      min-width: 140px;
+      position: relative;
+      margin: 0 8px;
+    }
+    .search-wrap i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+    }
+    .search-wrap input {
+      width: 100%;
+      padding: 10px 16px 10px 42px;
+      border-radius: 40px;
+      border: 1px solid #e2e8f0;
+      background: #f1f5f9;
+      font-size: 0.95rem;
+      outline: none;
+      transition: 0.2s;
+    }
+    body.dark .search-wrap input {
+      background: #1e293b;
+      border-color: #334155;
+      color: #e2e8f0;
+    }
+    .search-wrap input:focus { border-color: #2563eb; background: #fff; }
+    body.dark .search-wrap input:focus { background: #1e293b; }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .header-actions button {
+      background: transparent;
+      border: none;
+      font-size: 1.3rem;
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 30px;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+    body.dark .header-actions button { color: #cbd5e1; }
+    .header-actions button:hover { background: rgba(0,0,0,0.04); }
+    body.dark .header-actions button:hover { background: #1e293b; }
+    .badge-count {
+      background: #2563eb;
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 30px;
+      font-weight: 600;
+    }
+    body.dark .badge-count { background: #3b82f6; }
+    
+    /* Скрытие кнопки избранного на странице камеры */
+    .header-actions .fav-btn-header.hidden {
+      display: none !important;
+    }
+
+    /* боковое меню категорий (плавающее) */
+    .category-side {
+      position: fixed;
+      left: 0;
+      top: 80px;
+      bottom: 20px;
+      width: 180px;
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(8px);
+      border-right: 1px solid rgba(0,0,0,0.04);
+      padding: 16px 8px;
+      overflow-y: auto;
+      z-index: 900;
+      border-radius: 0 20px 20px 0;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.02);
+      transition: 0.2s;
+    }
+    body.dark .category-side {
+      background: rgba(15, 23, 42, 0.85);
+      border-right-color: #2d3a52;
+    }
+    .category-side h4 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #64748b;
+      margin: 8px 0 12px 12px;
+    }
+    .category-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      margin: 3px 0;
+      transition: 0.15s;
+      color: #1e293b;
+    }
+    body.dark .category-item { color: #e2e8f0; }
+    .category-item i { width: 20px; color: #64748b; }
+    .category-item.active, .category-item:hover {
+      background: #2563eb10;
+      color: #2563eb;
+    }
+    body.dark .category-item.active, body.dark .category-item:hover {
+      background: #2563eb20;
+      color: #60a5fa;
+    }
+    .category-item.active i { color: #2563eb; }
+    body.dark .category-item.active i { color: #60a5fa; }
+
+    /* основная сетка */
+    .main-wrap {
+      margin-left: 190px;
+      padding: 20px 24px 40px;
+    }
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .stats span { font-weight: 500; color: #475569; }
+    body.dark .stats span { color: #94a3b8; }
+    .sort-select {
+      padding: 6px 14px;
+      border-radius: 30px;
+      border: 1px solid #e2e8f0;
+      background: white;
+      font-size: 0.85rem;
+    }
+    body.dark .sort-select {
+      background: #1e293b;
+      border-color: #334155;
+      color: #e2e8f0;
+    }
+
+    .camera-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    /* карточка камеры */
+    .camera-card {
+      background: white;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+      border: 1px solid rgba(0,0,0,0.02);
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+    body.dark .camera-card {
+      background: #1e293b;
+      border-color: #2d3a52;
+    }
+    .camera-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+    }
+    .card-preview {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      background: #eef2f6;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    body.dark .card-preview { background: #0f172a; }
+    .card-preview iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: none;
+      pointer-events: none;
+    }
+    .card-preview .placeholder-icon {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      color: #94a3b8;
+      background: #eef2f6;
+    }
+    body.dark .card-preview .placeholder-icon { background: #0f172a; color: #475569; }
+
+    .card-body {
+      padding: 14px 16px 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-title {
+      font-weight: 600;
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .card-title span { flex: 1; }
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      font-size: 0.8rem;
+      color: #64748b;
+      margin: 6px 0 10px;
+    }
+    body.dark .card-meta { color: #94a3b8; }
+    .card-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      justify-content: flex-end;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 10px;
+    }
+    body.dark .card-actions { border-top-color: #2d3a52; }
+    .card-actions button {
+      background: transparent;
+      border: none;
+      font-size: 0.9rem;
+      padding: 4px 8px;
+      border-radius: 20px;
+      cursor: pointer;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: 0.2s;
+    }
+    .card-actions button:hover { background: #f1f5f9; }
+    body.dark .card-actions button:hover { background: #2d3a52; }
+    .fav-btn.active { color: #ef4444; }
+
+    /* страница камеры (camera.html) – стили подключаются отдельно, но здесь для демо */
+    .camera-page {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .camera-page iframe {
+      width: 100%;
+      height: 500px;
+      border-radius: 24px;
+      border: none;
+      background: #eef2f6;
+    }
+    .camera-page .meta { margin: 20px 0; }
+    .camera-page .similar {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    /* темная тема для элементов */
+    body.dark .camera-card .card-actions button { color: #94a3b8; }
+    body.dark .sort-select option { background: #1e293b; }
+
+    /* адаптив */
+    @media (max-width: 900px) {
+      .category-side { display: none; }
+      .main-wrap { margin-left: 0; padding: 16px; }
+      .header { padding: 0 12px; flex-wrap: wrap; height: auto; gap: 6px; }
+      .search-wrap { order: 3; flex: 1 1 100%; margin: 4px 0; }
+    }
+    @media (max-width: 480px) {
+      .camera-grid { grid-template-columns: 1fr; }
+      .logo { font-size: 1.1rem; }
+    }
+
+    /* ленивая загрузка: если iframe не загружен, показываем прелоадер */
+    .loading-spinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.6);
+      z-index: 2;
+    }
+    body.dark .loading-spinner { background: rgba(15,23,42,0.6); }
+    .spinner {
+      width: 30px; height: 30px;
+      border: 3px solid #e2e8f0;
+      border-top: 3px solid #2563eb;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* уведомление */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+    }
+    body.dark .toast {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+  </style>
+</head>
+<body>
+  <!-- шапка -->
+  <header class="header">
+    <div class="logo" id="logoLink"><i class="fas fa-video"></i>&nbsp;IPLiveNow</div>
+    <div class="search-wrap">
+      <i class="fas fa-search"></i>
+      <input type="text" id="searchInput" placeholder="Поиск по названию, городу, стране..." />
+    </div>
+    <div class="header-actions">
+      <button id="themeToggle" title="Тема"><i class="fas fa-moon"></i></button>
+      <button id="favFilterBtn" class="fav-btn-header" title="Избранное"><i class="fas fa-star"></i> <span class="badge-count" id="favCount">0</span></button>
+      <button id="resetFiltersBtn" title="Сбросить"><i class="fas fa-times"></i></button>
+    </div>
+  </header>
+
+  <!-- боковое меню категорий -->
+  <aside class="category-side" id="categorySide">
+    <h4><i class="fas fa-tag"></i> Категории</h4>
+    <div id="categoryList"></div>
+  </aside>
+
+  <!-- основная область -->
+  <main class="main-wrap" id="mainWrap">
+    <div class="stats" id="statsBar">
+      <span id="cameraCount">Камер: 0</span>
+      <select class="sort-select" id="sortSelect">
+        <option value="default">По умолчанию</option>
+        <option value="title">По названию</option>
+        <option value="country">По стране</option>
+      </select>
+    </div>
+    <div class="camera-grid" id="cameraGrid"></div>
+  </main>
+
+  <!-- Toast уведомление -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ======================== ДАННЫЕ КАМЕР ========================
+    const cameras = [
+      { id: 1, title: "Гнездо соколов", country: "Польша", city: "Реда", category: "Животные", source: "https://nadmorski24.pl/", iframe: "https://player.nadmorski24.pl/individual/peregrinus_reda_gniazdo_static" },
+
+      { id: 2, title: "Золотой мост", country: "Россия", city: "Владивосток", category: "Мосты", source: "https://vladlink.ru/", iframe: "https://www.geocam.ru/js/player/playerjs.html?file=https://hls7.vladlink.ru/live/vlcam_117/playlist.m3u8&amp;poster=/images/photo/go/ld/golden-bridge.jpg" },
+
+      { id: 3, title: "Кухня пиццерии «Додо Пицца» на Лунной улице", country: "Россия", city: "Домодедово", category: "Пиццерии", source: "https://dodopizza.ru/", iframe: "https://open.ivideon.com/embed/v3/?server=100-NWbsZvNYxwCvfBKhj6NoKz&amp;camera=0&amp;width=&amp;height=&amp;lang=ru" },
+
+      { id: 4, title: "Кухня пиццерии «Додо Пицца» на улице Свердлова", country: "Россия", city: "Балашиха", category: "Пиццерии", source: "https://dodopizza.ru/", iframe: "https://open.ivideon.com/embed/v3/?server=100-lmAI2UsS9iFhUIjhUR9S3v&amp;camera=0&amp;width=&amp;height=&amp;lang=ru" },
+
+      { id: 5, title: "Кухня пиццерии «Додо Пицца» на проспекте Ленина", country: "Россия", city: "Балашиха", category: "Пиццерии", source: "https://dodopizza.ru/", iframe: "https://open.ivideon.com/embed/v3/?server=100-OuVhToAJu8k2nrqgnVHKH6&amp;camera=0&amp;width=&amp;height=&amp;lang=ru" },
+
+      { id: 6, title: "«Додо Пицца» на ул. Волкова", country: "Россия", city: "Ростов-на-Дону", category: "Пиццерии", source: "https://ivideon.com/", iframe: "https://open.ivideon.com/embed/v3/?server=100-2d6c82f2e28a600a3c8b3877792a96c4&amp;camera=589824&amp;width=&amp;height=&amp;lang=ru" },
+
+      { id: 7, title: "Студия «Радио Крым»", country: "Украина", city: "Симферополь", category: "Радиостанции", source: "https://crimea-radio.ru/", iframe: "https://www.geocam.ru/js/player/playerjs.html?file=https://cdn.1tvcrimea.ru/radio.m3u8&amp;poster=/images/photo/ra/di/radio-krym.webp" },
+
+      { id: 8, title: "Шоссе Энтузиастов", country: "Россия", city: "Москва", category: "Дорожные веб-камеры", source: "https://cameras.inetcom.ru/", iframe: "https://cameras.inetcom.ru/embed/2" },
+
+      { id: 9, title: "Волгоградский проспект", country: "Россия", city: "Москва", category: "Дорожные веб-камеры", source: "https://cameras.inetcom.ru/", iframe: "https://cameras.inetcom.ru/embed/4" },
+
+      { id: 10, title: "Перекрёсток Донинского и Северного шоссе", country: "Россия", city: "Раменское", category: "Дорожные веб-камеры", source: "https://aviel.ru/", iframe: "https://cloud.aviel.ru/vsaas/embed/perekrestok.severnoe.sh..donenskoe.sh.-8bffe75109?realtime=false&amp;dvr=false&amp;token=AXqNUdYva56pr4JjDc1uMZDB&amp;autoplay=false&amp;realtime=false" },
+
+    ];
+
+    // ======================== ГЛОБАЛЬНОЕ СОСТОЯНИЕ ========================
+    let currentCategory = 'Все';
+    let searchQuery = '';
+    let showFavorites = false;
+    let sortType = 'default';
+    let favorites = JSON.parse(localStorage.getItem('webcams_favorites')) || [];
+    let theme = localStorage.getItem('webcams_theme') || 'light';
+    let isCameraPage = false; // Флаг для определения, находимся ли мы на странице камеры
+
+    // DOM ссылки
+    const grid = document.getElementById('cameraGrid');
+    const searchInput = document.getElementById('searchInput');
+    const categoryList = document.getElementById('categoryList');
+    const favFilterBtn = document.getElementById('favFilterBtn');
+    const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+    const themeToggle = document.getElementById('themeToggle');
+    const sortSelect = document.getElementById('sortSelect');
+    const cameraCountSpan = document.getElementById('cameraCount');
+    const favCountSpan = document.getElementById('favCount');
+    const toast = document.getElementById('toast');
+    const statsBar = document.getElementById('statsBar');
+    const logoLink = document.getElementById('logoLink');
+
+    // ======================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ========================
+    function showToast(message, duration = 2500) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, duration);
+    }
+
+    // ======================== ФУНКЦИИ ========================
+    function getCategories() {
+      const cats = new Set(cameras.map(c => c.category));
+      return ['Все', ...cats];
+    }
+
+    function renderCategories() {
+      const cats = getCategories();
+      categoryList.innerHTML = cats.map(cat => `
+        <div class="category-item ${cat === currentCategory ? 'active' : ''}" data-cat="${cat}">
+          <i class="fas fa-${cat === 'Все' ? 'th-large' : 'tag'}"></i> ${cat}
+        </div>
+      `).join('');
+      categoryList.querySelectorAll('.category-item').forEach(el => {
+        el.addEventListener('click', () => {
+          currentCategory = el.dataset.cat;
+          renderCategories();
+          renderCameras();
+        });
+      });
+    }
+
+    function getFilteredCameras() {
+      let result = [...cameras];
+      // поиск
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        result = result.filter(c => 
+          c.title.toLowerCase().includes(q) ||
+          c.city.toLowerCase().includes(q) ||
+          c.country.toLowerCase().includes(q)
+        );
+      }
+      // категория
+      if (currentCategory !== 'Все') {
+        result = result.filter(c => c.category === currentCategory);
+      }
+      // избранное
+      if (showFavorites) {
+        result = result.filter(c => favorites.includes(c.id));
+      }
+      // сортировка
+      if (sortType === 'title') result.sort((a,b) => a.title.localeCompare(b.title));
+      else if (sortType === 'country') result.sort((a,b) => a.country.localeCompare(b.country));
+      else result.sort((a,b) => a.id - b.id);
+      return result;
+    }
+
+    function renderCameras() {
+      const list = getFilteredCameras();
+      cameraCountSpan.textContent = `Камер: ${list.length}`;
+      favCountSpan.textContent = favorites.length;
+
+      if (list.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:#94a3b8;">Ничего не найдено</div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map(cam => {
+        const isFav = favorites.includes(cam.id);
+        return `
+          <div class="camera-card" data-id="${cam.id}">
+            <div class="card-preview" data-id="${cam.id}">
+              <div class="placeholder-icon"><i class="fas fa-spinner fa-pulse"></i></div>
+              <iframe data-src="${cam.iframe}" loading="lazy" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <div class="card-body">
+              <div class="card-title">
+                <span>${cam.title}</span>
+              </div>
+              <div class="card-meta">
+                <span><i class="fas fa-map-pin"></i> ${cam.city}, ${cam.country}</span>
+                <span><i class="fas fa-tag"></i> ${cam.category}</span>
+              </div>
+              <div class="card-actions">
+                <button class="fav-btn ${isFav ? 'active' : ''}" data-id="${cam.id}"><i class="fas fa-star"></i></button>
+                <button class="fullscreen-btn" data-id="${cam.id}"><i class="fas fa-expand"></i></button>
+                <button class="share-btn" data-id="${cam.id}"><i class="fas fa-share-alt"></i></button>
+                <button class="copy-btn" data-id="${cam.id}"><i class="fas fa-link"></i></button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // ---------- Ленивая загрузка через IntersectionObserver ----------
+      const iframes = grid.querySelectorAll('iframe[data-src]');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const iframe = entry.target;
+            const src = iframe.dataset.src;
+            if (src) {
+              iframe.src = src;
+              iframe.removeAttribute('data-src');
+              // убираем плейсхолдер
+              const preview = iframe.closest('.card-preview');
+              const placeholder = preview?.querySelector('.placeholder-icon');
+              if (placeholder) placeholder.style.display = 'none';
+            }
+            observer.unobserve(iframe);
+          }
+        });
+      }, { rootMargin: '200px' });
+
+      iframes.forEach(iframe => observer.observe(iframe));
+
+      // ---------- Обработчики внутри карточек ----------
+      grid.querySelectorAll('.fav-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = Number(btn.dataset.id);
+          toggleFavorite(id);
+          renderCameras();
+        });
+      });
+
+      grid.querySelectorAll('.fullscreen-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const card = btn.closest('.camera-card');
+          const iframe = card?.querySelector('iframe');
+          if (iframe && iframe.requestFullscreen) {
+            iframe.requestFullscreen();
+          }
+        });
+      });
+
+      // ИСПРАВЛЕННАЯ КНОПКА "ПОДЕЛИТЬСЯ"
+      grid.querySelectorAll('.share-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          const cam = cameras.find(c => c.id === Number(id));
+          if (!cam) return;
+          
+          const url = `${window.location.origin}${window.location.pathname}?id=${id}`;
+          const shareData = {
+            title: cam.title,
+            text: `Веб-камера: ${cam.title} (${cam.city}, ${cam.country})`,
+            url: url
+          };
+
+          // Проверяем поддержку Web Share API и наличие HTTPS
+          if (navigator.share && window.isSecureContext) {
+            navigator.share(shareData).catch(err => {
+              // Игнорируем ошибку отмены
+              if (err.name !== 'AbortError') {
+                console.warn('Share error:', err);
+                fallbackShare(url, cam.title);
+              }
+            });
+          } else {
+            fallbackShare(url, cam.title);
+          }
+        });
+      });
+
+      grid.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          const url = `${window.location.origin}${window.location.pathname}?id=${id}`;
+          
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(url).then(() => {
+              showToast('✅ Ссылка скопирована!');
+            }).catch(() => {
+              fallbackCopy(url);
+            });
+          } else {
+            fallbackCopy(url);
+          }
+        });
+      });
+
+      // клик по превью – открыть страницу камеры
+      grid.querySelectorAll('.card-preview').forEach(preview => {
+        preview.addEventListener('click', () => {
+          const id = preview.dataset.id;
+          window.location.href = `?id=${id}`;
+        });
+      });
+    }
+
+    // Функция-запасной вариант для "Поделиться"
+    function fallbackShare(url, title) {
+      // Показываем диалог с ссылкой
+      const message = `📹 ${title}\n🔗 ${url}`;
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(message).then(() => {
+          showToast('✅ Ссылка скопирована в буфер!');
+        }).catch(() => {
+          prompt('Скопируйте ссылку:', url);
+        });
+      } else {
+        prompt('Скопируйте ссылку:', url);
+      }
+    }
+
+    // Функция-запасной вариант для "Копировать"
+    function fallbackCopy(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast('✅ Ссылка скопирована!');
+      } catch (err) {
+        prompt('Скопируйте ссылку:', text);
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // Избранное
+    function toggleFavorite(id) {
+      const idx = favorites.indexOf(id);
+      if (idx >= 0) favorites.splice(idx, 1);
+      else favorites.push(id);
+      localStorage.setItem('webcams_favorites', JSON.stringify(favorites));
+      // Обновляем счетчик в шапке
+      favCountSpan.textContent = favorites.length;
+    }
+
+    // Тема
+    function applyTheme(themeMode) {
+      document.body.classList.toggle('dark', themeMode === 'dark');
+      themeToggle.innerHTML = `<i class="fas fa-${themeMode === 'dark' ? 'sun' : 'moon'}"></i>`;
+      localStorage.setItem('webcams_theme', themeMode);
+    }
+
+    // Функция для скрытия/показа элементов на странице камеры
+    function toggleCameraPageElements(showMainPage) {
+      // Скрываем/показываем кнопку избранного
+      favFilterBtn.classList.toggle('hidden', !showMainPage);
+      
+      // Скрываем/показываем панель статистики и сортировки
+      statsBar.style.display = showMainPage ? 'flex' : 'none';
+      
+      // Скрываем/показываем боковое меню
+      document.getElementById('categorySide').style.display = showMainPage ? 'block' : 'none';
+      
+      // Показываем/скрываем поиск
+      searchInput.style.display = showMainPage ? 'block' : 'none';
+      searchInput.parentElement.querySelector('i').style.display = showMainPage ? 'block' : 'none';
+      
+      // Меняем отступ основного контента
+      document.querySelector('.main-wrap').style.marginLeft = showMainPage ? '190px' : '0';
+      
+      // Показываем/скрываем кнопку сброса фильтров
+      resetFiltersBtn.style.display = showMainPage ? 'block' : 'none';
+    }
+
+    // инициализация
+    function init() {
+      // тема
+      applyTheme(theme);
+      themeToggle.addEventListener('click', () => {
+        const newTheme = document.body.classList.contains('dark') ? 'light' : 'dark';
+        applyTheme(newTheme);
+      });
+
+      // Обработчик клика по логотипу - возврат на главную
+      logoLink.addEventListener('click', () => {
+        window.location.href = '?';
+      });
+
+      // категории
+      renderCategories();
+
+      // поиск
+      searchInput.addEventListener('input', () => {
+        searchQuery = searchInput.value;
+        renderCameras();
+      });
+
+      // избранное фильтр
+      favFilterBtn.addEventListener('click', () => {
+        showFavorites = !showFavorites;
+        favFilterBtn.style.color = showFavorites ? '#ef4444' : '';
+        renderCameras();
+      });
+
+      // сброс
+      resetFiltersBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchQuery = '';
+        currentCategory = 'Все';
+        showFavorites = false;
+        favFilterBtn.style.color = '';
+        sortSelect.value = 'default';
+        sortType = 'default';
+        renderCategories();
+        renderCameras();
+      });
+
+      // сортировка
+      sortSelect.addEventListener('change', () => {
+        sortType = sortSelect.value;
+        renderCameras();
+      });
+
+      // если есть id в URL – открыть страницу камеры
+      const urlParams = new URLSearchParams(window.location.search);
+      const camId = urlParams.get('id');
+      if (camId) {
+        const cam = cameras.find(c => c.id === Number(camId));
+        if (cam) {
+          isCameraPage = true;
+          // Скрываем элементы главной страницы
+          toggleCameraPageElements(false);
+          // Показываем страницу камеры
+          showCameraPage(cam);
+          return;
+        }
+      }
+
+      // Если мы на главной странице
+      isCameraPage = false;
+      toggleCameraPageElements(true);
+      renderCameras();
+    }
+
+    // Эмуляция страницы камеры (camera.html)
+    function showCameraPage(cam) {
+      const main = document.getElementById('mainWrap');
+      main.innerHTML = `
+        <div class="camera-page">
+          <button onclick="window.location.href='?'" style="margin-bottom:20px; background:none; border:none; font-size:1.2rem; cursor:pointer; color:#2563eb;">
+            <i class="fas fa-arrow-left"></i> Назад к списку
+          </button>
+          <h2>${cam.title}</h2>
+          <div style="margin:12px 0; color:#64748b;">
+            <i class="fas fa-map-pin"></i> ${cam.city}, ${cam.country} &nbsp;|&nbsp; 
+            <i class="fas fa-tag"></i> ${cam.category}
+          </div>
+          <iframe src="${cam.iframe}" allowfullscreen frameborder="0" style="width:100%; height:500px; border-radius:24px;"></iframe>
+          <div class="meta">
+            <p><strong>Источник:</strong> <a href="${cam.source}" target="_blank">${cam.source}</a></p>
+            <p><strong>Описание:</strong> Прямая трансляция с камеры "${cam.title}".</p>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+              <button onclick="window.location.href='?id=${cam.id}'" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:30px; cursor:pointer;">
+                <i class="fas fa-sync"></i> Обновить
+              </button>
+              <button onclick="window.location.href='?'" style="background:#64748b; color:white; border:none; padding:8px 20px; border-radius:30px; cursor:pointer;">
+                <i class="fas fa-th-large"></i> Все камеры
+              </button>
+            </div>
+          </div>
+          <h3>Похожие камеры</h3>
+          <div class="similar">
+            ${cameras.filter(c => c.category === cam.category && c.id !== cam.id).slice(0,4).map(c => `
+              <div style="background:white; border-radius:16px; padding:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                <div style="font-weight:600;">${c.title}</div>
+                <div style="font-size:0.8rem; color:#64748b;">${c.city}, ${c.country}</div>
+                <button onclick="window.location.href='?id=${c.id}'" style="margin-top:8px; background:#2563eb; color:white; border:none; padding:4px 16px; border-radius:30px; cursor:pointer;">Смотреть</button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      // темная тема для страницы
+      if (document.body.classList.contains('dark')) {
+        main.querySelectorAll('.similar > div').forEach(el => el.style.background = '#1e293b');
+      }
+    }
+
+    // запуск
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
